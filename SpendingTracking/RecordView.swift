@@ -7,68 +7,125 @@
 
 import SwiftUI
 
+struct Transaction: Identifiable, Hashable {
+    let id = UUID() // Generate a unique identifier
+    let payer: String
+    let payee: String
+    let amount: Double
+}
+
 struct RecordView: View {
     @Binding var spendings: [Spending]
+    @State private var isSummaryBarExpanded: Bool = true
     
     var body: some View {
         NavigationView {
             VStack {
-                // Summary Bar
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(calculateParticipantSummary().sorted(by: { $0.key < $1.key }), id: \.key) { participant, summary in
-                            VStack {
-                                Text(participant)
-                                    .font(.headline)
-                                Text("Spent: \(summary.spent, specifier: "%.2f")")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                Text("Paid: \(summary.paid, specifier: "%.2f")")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                Text("Total: \(summary.spent-summary.paid, specifier: "%.2f")")
-                                    .font(.subheadline)
-                                    .foregroundColor(.black)
+                // Conditionally Show Summary Bars with Animation
+                if isSummaryBarExpanded {
+                    VStack {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(calculateParticipantSummary().sorted(by: { $0.key < $1.key }), id: \.key) { participant, summary in
+                                    VStack(alignment: .leading) {
+                                        Text(participant)
+                                            .font(.headline)
+                                        Text("Spent: \(summary.spent, specifier: "%.2f")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                        Text("Paid: \(summary.paid, specifier: "%.2f")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                        Text("Total: \(summary.spent - summary.paid, specifier: "%.2f")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.black)
+                                    }
+                                    .frame(width: 120, height: 94) // Fixed width for each participant
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color.blue.opacity(0.2))
+                                    )
+                                }
                             }
-                            .frame(width: 120, height: 94) // Fixed width for each participant
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.blue.opacity(0.2))
-                            )
+                            .padding(.horizontal)
+                        }
+                        .padding(.vertical, 5)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(calculateParticipantSummarySplit().sorted(by: { $0.payer < $1.payer }), id: \.id) { transaction in
+                                    VStack(alignment: .leading) {
+                                        Text("\(transaction.payer) owes")
+                                            .font(.headline)
+                                        Text("\(transaction.payee)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.blue)
+                                        Text("$\(transaction.amount, specifier: "%.2f")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.red)
+                                    }
+                                    .frame(width: 120, height: 94)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color.green.opacity(0.2))
+                                    )
+                                }
+                            }
+                            .padding(.horizontal)
                         }
                     }
-                    .padding(.horizontal)
+                    // Animation for collapsing/expanding
+//                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.easeInOut, value: isSummaryBarExpanded)
                 }
-                .padding(.vertical)
-                .background(Color(.systemGray6)) // Background for the summary bar
+
                 
                 // Spending List
-                List {
-                    ForEach(spendings) { spending in
-                        VStack(alignment: .leading) {
-                            Text(spending.name)
-                                .font(.headline)
-                            Text("Amount: \(spending.amount, specifier: "%.2f")")
-                            Text("Payer: \(spending.payer)")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                            Text("Participants: \(spending.participants.joined(separator: ", "))")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                VStack {
+                    List {
+                        Section(header: Text("Spendings").font(.headline)) {
+                            ForEach(spendings) { spending in
+                                VStack(alignment: .leading) {
+                                    HStack {
+                                        Text(spending.name)
+                                            .font(.headline)
+                                        Spacer()
+                                        Text("$\(spending.amount, specifier: "%.2f")")
+                                    }
+                                    Text("Payer: \(spending.payer)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                    Text("Participants: \(spending.participants.joined(separator: ", "))")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .onDelete(perform: deleteSpending) // Enable swipe-to-delete
                         }
                     }
-                    .onDelete(perform: deleteSpending) // Enable swipe-to-delete
-                }
-                .navigationTitle("Spendings")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        EditButton() // Adds an edit button for delete functionality
+                    .navigationTitle("Spendings")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(action: {
+                                withAnimation {
+                                    isSummaryBarExpanded.toggle()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: isSummaryBarExpanded ? "chevron.up" : "chevron.down")
+                                }
+                            }
+                        }
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            EditButton()
+                        }
                     }
                 }
             }
+            .background(Color(.systemGray6))
         }
     }
-
+    
     func deleteSpending(at offsets: IndexSet) {
         spendings.remove(atOffsets: offsets)
         saveSpendingsToFile() // Ensure data persistence after deletion
@@ -83,49 +140,71 @@ struct RecordView: View {
             print("Failed to save spendings: \(error)")
         }
     }
-
+    
     func getDocumentDirectory() -> URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
     
     private func calculateParticipantSummary() -> [String: (spent: Double, paid: Double)] {
         var participantSummary: [String: (spent: Double, paid: Double)] = [:]
-        
+
         for spending in spendings {
             let share = spending.amount / Double(spending.participants.count)
-            
+
             // Add spent amount for each participant
             for participant in spending.participants {
                 participantSummary[participant, default: (spent: 0.0, paid: 0.0)].spent += share
             }
-            
+
             // Add paid amount for the payer
             participantSummary[spending.payer, default: (spent: 0.0, paid: 0.0)].paid += spending.amount
         }
-        
+
         return participantSummary
     }
-}
 
-#Preview {
-    @State var spendings: [Spending] = [
-        Spending(name: "Lunch", amount: 20.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
-        Spending(name: "Coffee", amount: 5.50, payer: "Eric", participants: ["Eric", "Carl"]),
-        Spending(name: "Groceries", amount: 100.00, payer: "BU", participants: ["Carl", "Eric", "BU"]),
-        Spending(name: "Taxi Ride", amount: 25.00, payer: "Carl", participants: ["Carl", "Eric"]),
-        Spending(name: "Movie Tickets", amount: 45.00, payer: "Eric", participants: ["Eric", "BU"]),
-        Spending(name: "Gym Membership", amount: 60.00, payer: "BU", participants: ["BU"]),
-        Spending(name: "Concert Tickets", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
-        Spending(name: "Dinner Party", amount: 80.00, payer: "Eric", participants: ["Carl", "Eric", "BU"]),
-        Spending(name: "Office Supplies", amount: 30.00, payer: "BU", participants: ["Carl", "Eric", "BU", "Other"]),
-        Spending(name: "Shared Rent", amount: 400.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
-        Spending(name: "Road Trip Gas", amount: 75.00, payer: "Other", participants: ["Carl", "Eric", "Other"]),
-        Spending(name: "Gift for Boss", amount: 50.00, payer: "Eric", participants: ["Eric", "Other"]),
-        Spending(name: "Holiday Groceries", amount: 200.00, payer: "BU", participants: ["Carl", "BU", "Other"]),
-        Spending(name: "Streaming Subscription", amount: 15.00, payer: "Other", participants: ["Carl", "BU", "Other"]),
-        Spending(name: "Shared Utilities", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
-        Spending(name: "Weekend Getaway", amount: 300.00, payer: "Eric", participants: ["Carl", "Eric", "Other"])
-    ]
     
-    RecordView(spendings: $spendings)
+    private func calculateParticipantSummarySplit() -> [Transaction] {
+        var participantBalances: [String: Double] = [:]
+        
+        // Calculate balances
+        for spending in spendings {
+            let share = spending.amount / Double(spending.participants.count)
+            
+            // Subtract share from each participant
+            for participant in spending.participants {
+                participantBalances[participant, default: 0.0] -= share
+            }
+            
+            // Add full amount to the payer
+            participantBalances[spending.payer, default: 0.0] += spending.amount
+        }
+        
+        // Determine who owes whom
+        var transactions: [Transaction] = []
+        var creditors = participantBalances.filter { $0.value > 0 }.sorted { $0.value > $1.value }
+        var debtors = participantBalances.filter { $0.value < 0 }.sorted { $0.value < $1.value }
+        
+        while !creditors.isEmpty && !debtors.isEmpty {
+            let creditor = creditors.first!
+            let debtor = debtors.first!
+            
+            let amount = min(creditor.value, -debtor.value)
+            
+            transactions.append(Transaction(payer: debtor.key, payee: creditor.key, amount: amount))
+            
+            // Update balances
+            creditors[0].value -= amount
+            debtors[0].value += amount
+            
+            if creditors[0].value == 0 {
+                creditors.removeFirst()
+            }
+            if debtors[0].value == 0 {
+                debtors.removeFirst()
+            }
+        }
+        
+        return transactions
+    }
 }

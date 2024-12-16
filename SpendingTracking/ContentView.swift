@@ -8,11 +8,25 @@
 import SwiftUI
 
 struct Spending: Identifiable, Codable {
-    let id = UUID()
+    var id: UUID
     let name: String
     let amount: Double
     let payer: String
     let participants: [String]
+
+    // Add a default initializer
+    init(id: UUID = UUID(), name: String, amount: Double, payer: String, participants: [String]) {
+        self.id = id
+        self.name = name
+        self.amount = amount
+        self.payer = payer
+        self.participants = participants
+    }
+}
+
+// Text Field Color
+var textFieldColor: Color {
+    Color(.white).opacity(0.7)
 }
 
 // Text Field Style
@@ -20,13 +34,22 @@ struct RoundedTextFieldModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding()
+//            .background(
+//                RoundedRectangle(cornerRadius: 15)
+//                    .fill(Color(.systemGray6).opacity(0.2))
+//            )
+//            .overlay(
+//                RoundedRectangle(cornerRadius: 15)
+//                    .stroke(Color.gray, lineWidth: 1)
+//            )
             .background(
                 RoundedRectangle(cornerRadius: 15)
-                    .fill(Color(.systemGray6).opacity(0.2))
+//                    .fill(Color(.systemGray6))
+                    .fill(textFieldColor)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 15)
-                    .stroke(Color.gray, lineWidth: 1)
+                    .stroke(Color.gray)
             )
             .padding(.horizontal)
     }
@@ -40,7 +63,6 @@ extension View {
 
 struct ContentView: View {
 //    @State private var spendings: [Spending] = []
-    
     @State private var spendings: [Spending] = [
         Spending(name: "Lunch", amount: 20.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
         Spending(name: "Coffee", amount: 5.50, payer: "Eric", participants: ["Eric", "Carl"]),
@@ -59,10 +81,13 @@ struct ContentView: View {
         Spending(name: "Shared Utilities", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
         Spending(name: "Weekend Getaway", amount: 300.00, payer: "Eric", participants: ["Carl", "Eric", "Other"])
     ]
+    
+    @State private var payers: [String] = UserDefaults.standard.stringArray(forKey: "payers") ?? ["Eric", "BU", "Carl"]
+
 
     var body: some View {
         TabView {
-            AddSpendingView(spendings: $spendings)
+            AddSpendingView(spendings: $spendings, payers: $payers)
                 .tabItem {
                     Label("Add", systemImage: "plus.app")
                 }
@@ -72,16 +97,23 @@ struct ContentView: View {
                     Label("Record", systemImage: "list.bullet")
                 }
 
-            SettingsView()
+            SettingsView(payers: $payers)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
         }
         .onAppear {
             loadSpendings()
+            loadPayers()
         }
     }
 
+    func loadPayers() {
+        if let savedPayers = UserDefaults.standard.stringArray(forKey: "payers") {
+            payers = savedPayers
+        }
+    }
+    
     // Save spendings to a file
     func saveSpendings() {
         let fileURL = getDocumentDirectory().appendingPathComponent("spendings.json")
@@ -110,121 +142,135 @@ struct ContentView: View {
     }
 }
 
+// Function to dismiss the keyboard
+func dismissKeyboard() {
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+}
+
 struct AddSpendingView: View {
     @Binding var spendings: [Spending]
+    
+//    private let payers = ["Eric", "BU", "Carl"]
+    @Binding var payers: [String]
+    private var participants: [String] {
+        payers + ["Other"]
+    }
+    
     @State private var name: String = ""
     @State private var amount: String = ""
-    @State private var selectedPayer: String = "Eric"
+    @State private var selectedPayer: String = ""
     @State private var selectedParticipants: [String] = []
-
-    private let payers = ["Eric", "BU", "Carl"]
-    private let participants = ["Eric", "BU", "Carl", "Other"]
-
+        
+    private var isSegmentedStyle: Bool {
+        payers.count < 8
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
                 ScrollView {
-                    Spacer().frame(height: 50)
-                    
-                    // Custom Horizontal Picker with Sliding Indicator
-                    ZStack(alignment: .bottomLeading) {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.blue.opacity(0.2))
-                            .frame(width: getSegmentWidth(), height: 39) // Dynamic width
-                            .offset(x: getIndicatorOffset() - 11, y: -7)
-                            .animation(.easeInOut(duration: 0.3), value: selectedPayer)
+                    VStack {
+                        Spacer().frame(height: 50)
                         
-                        HStack(spacing: 0) {
-                            ForEach(payers, id: \.self) { payer in
-                                Text(payer)
-                                    .font(.system(size: 18, weight: .medium))
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .onTapGesture {
-                                        selectedPayer = payer
+                        // Payer Picker
+                        Group {
+                            if isSegmentedStyle {
+                                Picker("Payer", selection: $selectedPayer) {
+                                    ForEach(payers, id: \.self) { payer in
+                                        Text(payer)
                                     }
-                                    .foregroundColor(selectedPayer == payer ? .blue : .gray)
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                            } else {
+                                Picker("Payer", selection: $selectedPayer) {
+                                    ForEach(payers, id: \.self) { payer in
+                                        Text(payer)
+                                    }
+                                }
+                                .pickerStyle(DefaultPickerStyle())
                             }
                         }
-                    }
-                    .frame(height: 48)
-                    .padding(.horizontal)
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(.systemGray6).opacity(0.2))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.gray, lineWidth: 1)
-                    )
-                    .padding(.horizontal)
-                    
-                    // TextFields
-                    TextField("Spending Name", text: $name)
-                        .roundedTextFieldStyle()
-                    
-                    TextField("Amount", text: $amount)
-                        .keyboardType(.decimalPad)
-                        .roundedTextFieldStyle()
-                    
-                    // Multi-select for Participants
-                    VStack(alignment: .leading) {
-                        Text("Participants")
-                            .font(.headline)
-                            .padding(.bottom, 4)
+                        .padding(.horizontal)
                         
-                        ForEach(participants, id: \.self) { participant in
-                            HStack {
-                                Text(participant)
-                                    .font(.body)
-                                Spacer()
-                                Image(systemName: selectedParticipants.contains(participant) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(selectedParticipants.contains(participant) ? .blue : .gray)
-                                    .onTapGesture {
-                                        toggleParticipant(participant)
+                        // TextFields
+                        TextField("Spending Name", text: $name)
+                            .roundedTextFieldStyle()
+                        
+                        TextField("Amount", text: $amount)
+                            .keyboardType(.decimalPad)
+                            .roundedTextFieldStyle()
+                        
+                        // Multi-select for Participants
+                        VStack(alignment: .leading) {
+                            Text("Participants")
+                                .font(.headline)
+                                .padding(.bottom, 4)
+                            
+                            ForEach(participants, id: \.self) { participant in
+                                Button(action: {
+                                    toggleParticipant(participant)
+                                }) {
+                                    HStack {
+                                        Text(participant)
+                                            .font(.body)
+                                        Spacer()
+                                        Image(systemName: selectedParticipants.contains(participant) ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(selectedParticipants.contains(participant) ? .blue : .gray)
                                     }
+                                    .padding(.vertical, 8)
+                                    .contentShape(Rectangle()) // Ensures the button is tappable across the whole row
+                                }
+                                .buttonStyle(PlainButtonStyle()) // Removes the default button styling
                             }
-                            .padding(.vertical, 8)
                         }
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(.systemGray6).opacity(0.2))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.gray, lineWidth: 1)
-                    )
-                    .padding(.horizontal)
-                    
-                    // Action Buttons
-                    HStack {
-                        Button("Clear") {
-                            clearFields()
-                        }
-                        .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.red.opacity(0.2))
-                        .foregroundColor(.red)
-                        .cornerRadius(10)
-                        
-                        Button("Save") {
-                            saveSpending()
-                            clearFields()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue.opacity(0.2))
-                        .foregroundColor(.blue)
-                        .cornerRadius(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(textFieldColor)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.gray, lineWidth: 1)
+                        )
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                 }
+                
+                // Sticky Buttons at the Bottom
+                HStack {
+                    Button("Clear") {
+                        clearFields()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red.opacity(0.2))
+                    .foregroundColor(.red)
+                    .cornerRadius(10)
+                    
+                    Button("Save") {
+                        saveSpending()
+                        clearFields()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue.opacity(0.2))
+                    .foregroundColor(.blue)
+                    .cornerRadius(10)
+                }
+//                .background(Color(.systemBackground)) // Ensures it stands out from scroll content
+                .padding(.horizontal)
+                .padding(.top, -3)
+                .padding(.bottom, 5)
+                .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: -2)
             }
-            .padding(.horizontal)
+            .onAppear {
+                selectedPayer = payers.first ?? "" // Set selectedPlayer to be the first element in payers
+            }
             .navigationTitle("Add Spending")
-//            .background(Color(.systemGray6)) // Set your desired background color here for the whole page
+            .background(Color(.systemGray6)) // background color for the whole page
+            .onTapGesture {
+                dismissKeyboard()
+            }
         }
     }
 
@@ -267,20 +313,6 @@ struct AddSpendingView: View {
         } else {
             selectedParticipants.append(participant)
         }
-    }
-
-    // Calculate the width of each segment
-    func getSegmentWidth() -> CGFloat {
-        let totalWidth = UIScreen.main.bounds.width - 32 // Subtract horizontal padding
-        guard !payers.isEmpty else { return 1 } // Prevent division by zero
-        return totalWidth / CGFloat(payers.count)
-    }
-
-    // Calculate the X-offset for the sliding indicator
-    func getIndicatorOffset() -> CGFloat {
-        guard let index = payers.firstIndex(of: selectedPayer), !payers.isEmpty else { return 0 }
-        let segmentWidth = getSegmentWidth() - 21
-        return CGFloat(index) * segmentWidth
     }
 }
 
