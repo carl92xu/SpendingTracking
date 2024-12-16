@@ -69,8 +69,23 @@ struct RecordView: View {
         }
     }
 
-    private func deleteSpending(at offsets: IndexSet) {
+    func deleteSpending(at offsets: IndexSet) {
         spendings.remove(atOffsets: offsets)
+        saveSpendingsToFile() // Ensure data persistence after deletion
+    }
+    
+    func saveSpendingsToFile() {
+        let fileURL = getDocumentDirectory().appendingPathComponent("spendings.json")
+        do {
+            let data = try JSONEncoder().encode(spendings)
+            try data.write(to: fileURL)
+        } catch {
+            print("Failed to save spendings: \(error)")
+        }
+    }
+
+    func getDocumentDirectory() -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
     
     private func calculateParticipantSummary() -> [String: (spent: Double, paid: Double)] {
@@ -90,4 +105,27 @@ struct RecordView: View {
         
         return participantSummary
     }
+}
+
+#Preview {
+    @State var spendings: [Spending] = [
+        Spending(name: "Lunch", amount: 20.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
+        Spending(name: "Coffee", amount: 5.50, payer: "Eric", participants: ["Eric", "Carl"]),
+        Spending(name: "Groceries", amount: 100.00, payer: "BU", participants: ["Carl", "Eric", "BU"]),
+        Spending(name: "Taxi Ride", amount: 25.00, payer: "Carl", participants: ["Carl", "Eric"]),
+        Spending(name: "Movie Tickets", amount: 45.00, payer: "Eric", participants: ["Eric", "BU"]),
+        Spending(name: "Gym Membership", amount: 60.00, payer: "BU", participants: ["BU"]),
+        Spending(name: "Concert Tickets", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
+        Spending(name: "Dinner Party", amount: 80.00, payer: "Eric", participants: ["Carl", "Eric", "BU"]),
+        Spending(name: "Office Supplies", amount: 30.00, payer: "BU", participants: ["Carl", "Eric", "BU", "Other"]),
+        Spending(name: "Shared Rent", amount: 400.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
+        Spending(name: "Road Trip Gas", amount: 75.00, payer: "Other", participants: ["Carl", "Eric", "Other"]),
+        Spending(name: "Gift for Boss", amount: 50.00, payer: "Eric", participants: ["Eric", "Other"]),
+        Spending(name: "Holiday Groceries", amount: 200.00, payer: "BU", participants: ["Carl", "BU", "Other"]),
+        Spending(name: "Streaming Subscription", amount: 15.00, payer: "Other", participants: ["Carl", "BU", "Other"]),
+        Spending(name: "Shared Utilities", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
+        Spending(name: "Weekend Getaway", amount: 300.00, payer: "Eric", participants: ["Carl", "Eric", "Other"])
+    ]
+    
+    RecordView(spendings: $spendings)
 }
