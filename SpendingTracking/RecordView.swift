@@ -30,18 +30,23 @@ struct RecordView: View {
                                     VStack(alignment: .leading) {
                                         Text(participant)
                                             .font(.headline)
-                                        Text("Spent: \(summary.spent, specifier: "%.2f")")
+                                        Text("Spent: $\(summary.spent, specifier: "%.2f")")
                                             .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                        Text("Paid: \(summary.paid, specifier: "%.2f")")
+                                            .foregroundColor(Color(UIColor.secondaryLabel))
+                                        Text("Paid: $\(summary.paid, specifier: "%.2f")")
                                             .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                        Text("Total: \(summary.spent - summary.paid, specifier: "%.2f")")
+                                            .foregroundColor(Color(UIColor.secondaryLabel))
+                                        Text("Total: $\(summary.spent - summary.paid, specifier: "%.2f")")
                                             .font(.subheadline)
-                                            .foregroundColor(.black)
+                                            .fontWeight(.bold)
+//                                            .foregroundColor(.black)
                                     }
                                     .padding(.horizontal, -50)
-                                    .frame(width: 120, height: 94) // Fixed width for each participant
+//                                    .frame(width: 120, height: 94) // Fixed width for each participant
+                                    .frame(
+                                        width: (UIScreen.main.bounds.width - 40) / 3, // Alwasy only display three cards
+                                        height: 94
+                                    )
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .fill(Color.blue.opacity(0.2))
@@ -59,13 +64,14 @@ struct RecordView: View {
                                         HStack {
                                             Text("\(transaction.payer)")
                                                 .font(.headline)
-                                                .foregroundColor(.blue)
+                                                .foregroundColor(Color(UIColor.systemBlue))
                                             Text("owes")
                                                 .padding(.leading, -4)
+                                                .foregroundColor(Color(UIColor.secondaryLabel))
                                         }
                                         Text("\(transaction.payee)")
-//                                            .font(.headline)
-//                                            .foregroundColor(.blue)
+                                            .font(.headline)
+                                            .foregroundColor(Color(UIColor.label))
                                         Text("$\(transaction.amount, specifier: "%.2f")")
                                             .font(.headline)
 //                                            .foregroundColor(.red)
@@ -91,7 +97,7 @@ struct RecordView: View {
                 // Spending List
                 VStack {
                     List {
-                        Section(header: Text("Spendings").font(.headline)) {
+                        Section(header: Text("Spendings").font(.headline).padding(.leading, -15)) {
                             ForEach(spendings) { spending in
                                 VStack(alignment: .leading) {
                                     HStack {

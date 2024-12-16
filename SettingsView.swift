@@ -14,10 +14,9 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             VStack {
-                    
                 // List of current payers
                 List {
-                    Section(header: Text("Payers").font(.headline)) {
+                    Section(header: Text("Payers").font(.headline).padding(.leading, -15)) {
                         ForEach(payers, id: \.self) { payer in
                             Text(payer)
                         }
@@ -34,6 +33,7 @@ struct SettingsView: View {
                 HStack {
                     TextField("Add New Payer", text: $newPayer)
                         .roundedTextFieldStyle()
+                        .padding(.horizontal, -10)
 
                     Button(action: addPayer) {
                         Image(systemName: "plus.circle.fill")
@@ -45,6 +45,9 @@ struct SettingsView: View {
                 .padding(.top, -10)
             }
             .navigationTitle("Settings")
+            .onTapGesture {
+                dismissKeyboard()
+            }
         }
     }
 
@@ -72,4 +75,11 @@ struct SettingsView: View {
     func savePayers() {
         UserDefaults.standard.set(payers, forKey: "payers")
     }
+}
+
+
+#Preview {
+    @Previewable @State var payers: [String] = UserDefaults.standard.stringArray(forKey: "payers") ?? ["Eric", "BU", "Carl"]
+    
+    SettingsView(payers: $payers)
 }

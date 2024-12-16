@@ -30,69 +30,73 @@ struct AddSpendingView: View {
             VStack {
                 ScrollView {
                     VStack {
-                        Spacer().frame(height: 50)
+                        Spacer().frame(height: 10)
                         
                         // Payer Picker
-                        Group {
-                            if isSegmentedStyle {
-                                Picker("Payer", selection: $selectedPayer) {
-                                    ForEach(payers, id: \.self) { payer in
-                                        Text(payer)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Payer")
+                                .headerStyle()
+                            Group {
+                                if isSegmentedStyle {
+                                    Picker("Payer", selection: $selectedPayer) {
+                                        ForEach(payers, id: \.self) { payer in
+                                            Text(payer)
+                                        }
                                     }
-                                }
-                                .pickerStyle(SegmentedPickerStyle())
-                            } else {
-                                Picker("Payer", selection: $selectedPayer) {
-                                    ForEach(payers, id: \.self) { payer in
-                                        Text(payer)
+                                    .pickerStyle(SegmentedPickerStyle())
+                                } else {
+                                    Picker("Payer", selection: $selectedPayer) {
+                                        ForEach(payers, id: \.self) { payer in
+                                            Text(payer)
+                                        }
                                     }
+                                    .pickerStyle(DefaultPickerStyle())
                                 }
-                                .pickerStyle(DefaultPickerStyle())
                             }
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
                         
                         // TextFields
-                        TextField("Spending Name", text: $name)
-                            .roundedTextFieldStyle()
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Name")
+                                .headerStyle()
+                            TextField("Spending Name", text: $name)
+                                .roundedTextFieldStyle()
+                        }
                         
-                        TextField("Amount", text: $amount)
-                            .keyboardType(.decimalPad)
-                            .roundedTextFieldStyle()
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Amount")
+                                .headerStyle()
+                            TextField("Amount Paid", text: $amount)
+                                .keyboardType(.decimalPad)
+                                .roundedTextFieldStyle()
+                        }
                         
                         // Multi-select for Participants
-                        VStack(alignment: .leading) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Participants")
-                                .font(.headline)
-                                .padding(.bottom, 4)
+                                .headerStyle()
                             
-                            ForEach(participants, id: \.self) { participant in
-                                Button(action: {
-                                    toggleParticipant(participant)
-                                }) {
-                                    HStack {
-                                        Text(participant)
-                                            .font(.body)
-                                        Spacer()
-                                        Image(systemName: selectedParticipants.contains(participant) ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(selectedParticipants.contains(participant) ? .blue : .gray)
+                            VStack(alignment: .leading) {
+                                ForEach(participants, id: \.self) { participant in
+                                    Button(action: {
+                                        toggleParticipant(participant)
+                                    }) {
+                                        HStack {
+                                            Text(participant)
+                                                .font(.body)
+                                            Spacer()
+                                            Image(systemName: selectedParticipants.contains(participant) ? "checkmark.circle.fill" : "circle")
+                                                .foregroundColor(selectedParticipants.contains(participant) ? .blue : .gray)
+                                        }
+                                        .padding(.vertical, 8)
+                                        .contentShape(Rectangle()) // Ensures the button is tappable across the whole row
                                     }
-                                    .padding(.vertical, 8)
-                                    .contentShape(Rectangle()) // Ensures the button is tappable across the whole row
+                                    .buttonStyle(PlainButtonStyle()) // Removes the default button styling
                                 }
-                                .buttonStyle(PlainButtonStyle()) // Removes the default button styling
                             }
+                            .roundedTextFieldStyle()
                         }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(textFieldColor)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.gray, lineWidth: 1)
-                        )
-                        .padding(.horizontal)
                     }
                 }
                 
@@ -110,6 +114,7 @@ struct AddSpendingView: View {
                     Button("Save") {
                         saveSpending()
                         clearFields()
+                        dismissKeyboard()
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -127,7 +132,7 @@ struct AddSpendingView: View {
                 selectedPayer = payers.first ?? "" // Set selectedPlayer to be the first element in payers
             }
             .navigationTitle("Add Spending")
-            .background(Color(.systemGray6)) // background color for the whole page
+            .background(Color(UIColor.systemBackground)) // background color for the whole page
             .onTapGesture {
                 dismissKeyboard()
             }
