@@ -20,6 +20,8 @@ struct AddSpendingView: View {
     @State private var amount: String = ""
     @State private var selectedPayer: String = ""
     @State private var selectedParticipants: [String] = []
+    
+    @State private var newParticipantName: String = ""
         
     private var isSegmentedStyle: Bool {
         payers.count < 8
@@ -94,6 +96,20 @@ struct AddSpendingView: View {
                                     }
                                     .buttonStyle(PlainButtonStyle()) // Removes the default button styling
                                 }
+                                
+                                // TextField for adding custom participant
+                                HStack {
+                                    TextField("Add participant", text: $newParticipantName)
+                                        .roundedTextFieldStyle()
+                                    Button(action: {
+                                        addCustomParticipant()
+                                    }) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.title2)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(.top, 8)
                             }
                             .roundedTextFieldStyle()
                         }
@@ -169,6 +185,15 @@ struct AddSpendingView: View {
         amount = ""
 //        selectedPayer = "Eric"
         selectedParticipants = []
+    }
+    
+    func addCustomParticipant() {
+        let trimmedName = newParticipantName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedName.isEmpty && !participants.contains(trimmedName) {
+            payers.append(trimmedName) // Add to payers if needed
+            selectedParticipants.append(trimmedName)
+        }
+        newParticipantName = "" // Clear input
     }
     
     // Toggle participant selection
