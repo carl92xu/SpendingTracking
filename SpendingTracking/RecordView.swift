@@ -40,6 +40,7 @@ struct RecordView: View {
                                             .font(.subheadline)
                                             .foregroundColor(.black)
                                     }
+                                    .padding(.horizontal, -50)
                                     .frame(width: 120, height: 94) // Fixed width for each participant
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
@@ -55,15 +56,22 @@ struct RecordView: View {
                             HStack {
                                 ForEach(calculateParticipantSummarySplit().sorted(by: { $0.payer < $1.payer }), id: \.id) { transaction in
                                     VStack(alignment: .leading) {
-                                        Text("\(transaction.payer) owes")
-                                            .font(.headline)
+                                        HStack {
+                                            Text("\(transaction.payer)")
+                                                .font(.headline)
+                                                .foregroundColor(.blue)
+                                            Text("owes")
+                                                .padding(.leading, -4)
+                                        }
                                         Text("\(transaction.payee)")
-                                            .font(.subheadline)
-                                            .foregroundColor(.blue)
+//                                            .font(.headline)
+//                                            .foregroundColor(.blue)
                                         Text("$\(transaction.amount, specifier: "%.2f")")
-                                            .font(.subheadline)
-                                            .foregroundColor(.red)
+                                            .font(.headline)
+//                                            .foregroundColor(.red)
+                                            .padding(.top, 5)
                                     }
+                                    .padding(.horizontal, -50)
                                     .frame(width: 120, height: 94)
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
@@ -103,7 +111,7 @@ struct RecordView: View {
                             .onDelete(perform: deleteSpending) // Enable swipe-to-delete
                         }
                     }
-                    .navigationTitle("Spendings")
+                    .navigationTitle("Records")
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button(action: {
