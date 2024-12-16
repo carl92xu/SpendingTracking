@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C31954FD2D0F4639005C548A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31954FC2D0F4639005C548A /* SettingsView.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C35D53B72D0E846A00FA2477 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C31954FC2D0F4639005C548A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		C35D53A62D0E846800FA2477 /* SpendingTracking.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpendingTracking.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C35D53B62D0E846A00FA2477 /* SpendingTrackingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpendingTrackingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C35D53C02D0E846A00FA2477 /* SpendingTrackingUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpendingTrackingUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +80,7 @@
 		C35D539D2D0E846800FA2477 = {
 			isa = PBXGroup;
 			children = (
+				C31954FC2D0F4639005C548A /* SettingsView.swift */,
 				C35D53A82D0E846800FA2477 /* SpendingTracking */,
 				C35D53B92D0E846A00FA2477 /* SpendingTrackingTests */,
 				C35D53C32D0E846A00FA2477 /* SpendingTrackingUITests */,
@@ -236,6 +242,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C31954FD2D0F4639005C548A /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

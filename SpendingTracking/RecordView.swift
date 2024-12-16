@@ -7,24 +7,8 @@
 
 import SwiftUI
 
-// For Debugging Only
-//struct RecordView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        RecordView(spendings: [
-//            Spending(name: "Lunch", amount: 20.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
-//            Spending(name: "Coffee", amount: 5.50, payer: "Eric", participants: ["Eric", "Carl"]),
-//            Spending(name: "Groceries", amount: 100.00, payer: "BU", participants: ["Carl", "Eric", "BU"]),
-//            Spending(name: "Taxi Ride", amount: 25.00, payer: "Carl", participants: ["Carl", "Eric"]),
-//            Spending(name: "Movie Tickets", amount: 45.00, payer: "Eric", participants: ["Eric", "BU"]),
-//            Spending(name: "Gym Membership", amount: 60.00, payer: "BU", participants: ["BU"]),
-//            Spending(name: "Concert Tickets", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
-//            Spending(name: "Dinner Party", amount: 80.00, payer: "Eric", participants: ["Carl", "Eric", "BU"])
-//        ])
-//    }
-//}
-
 struct RecordView: View {
-    @Binding var spendings: [Spending] // Changed to @State to allow deletion
+    @Binding var spendings: [Spending]
     
     var body: some View {
         NavigationView {
@@ -32,16 +16,21 @@ struct RecordView: View {
                 // Summary Bar
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
-                        ForEach(calculateParticipantSums().sorted(by: { $0.key < $1.key }), id: \.key) { participant, total in
+                        ForEach(calculateParticipantSummary().sorted(by: { $0.key < $1.key }), id: \.key) { participant, summary in
                             VStack {
                                 Text(participant)
                                     .font(.headline)
-                                Text("\(total, specifier: "%.2f")")
+                                Text("Spent: \(summary.spent, specifier: "%.2f")")
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
+                                Text("Paid: \(summary.paid, specifier: "%.2f")")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                Text("Total: \(summary.spent-summary.paid, specifier: "%.2f")")
+                                    .font(.subheadline)
+                                    .foregroundColor(.black)
                             }
-                            .frame(width: 86) // Fixed width for each participant
-                            .padding()
+                            .frame(width: 120, height: 94) // Fixed width for each participant
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
                                     .fill(Color.blue.opacity(0.2))
@@ -84,16 +73,21 @@ struct RecordView: View {
         spendings.remove(atOffsets: offsets)
     }
     
-    private func calculateParticipantSums() -> [String: Double] {
-        var participantSums: [String: Double] = [:]
+    private func calculateParticipantSummary() -> [String: (spent: Double, paid: Double)] {
+        var participantSummary: [String: (spent: Double, paid: Double)] = [:]
         
         for spending in spendings {
             let share = spending.amount / Double(spending.participants.count)
+            
+            // Add spent amount for each participant
             for participant in spending.participants {
-                participantSums[participant, default: 0.0] += share
+                participantSummary[participant, default: (spent: 0.0, paid: 0.0)].spent += share
             }
+            
+            // Add paid amount for the payer
+            participantSummary[spending.payer, default: (spent: 0.0, paid: 0.0)].paid += spending.amount
         }
         
-        return participantSums
+        return participantSummary
     }
 }

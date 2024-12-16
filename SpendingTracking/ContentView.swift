@@ -48,7 +48,6 @@ struct ContentView: View {
         Spending(name: "Gym Membership", amount: 60.00, payer: "BU", participants: ["BU"]),
         Spending(name: "Concert Tickets", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
         Spending(name: "Dinner Party", amount: 80.00, payer: "Eric", participants: ["Carl", "Eric", "BU"]),
-        // New Entries
         Spending(name: "Office Supplies", amount: 30.00, payer: "BU", participants: ["Carl", "Eric", "BU", "Other"]),
         Spending(name: "Shared Rent", amount: 400.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
         Spending(name: "Road Trip Gas", amount: 75.00, payer: "Other", participants: ["Carl", "Eric", "Other"]),
@@ -69,6 +68,10 @@ struct ContentView: View {
             RecordView(spendings: $spendings) // Pass binding to RecordView
                 .tabItem {
                     Label("Record", systemImage: "list.bullet")
+                }
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape")
                 }
         }
     }
@@ -184,6 +187,7 @@ struct AddSpendingView: View {
             .navigationTitle("Add Spending")
         }
     }
+    
 
     // Toggle participant selection
     func toggleParticipant(_ participant: String) {
