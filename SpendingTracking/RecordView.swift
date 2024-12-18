@@ -21,10 +21,10 @@ struct RecordView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
+            VStack(spacing: 0) {
                 // Conditionally Show Summary Bars with Animation
                 if isSummaryBarExpanded {
-////                    // Toggle to switch between the two functions
+//                    // Toggle to switch between the two functions
 //                    HStack {
 //                        Text("Minimize Payments")
 //                            .font(.headline)
@@ -106,61 +106,62 @@ struct RecordView: View {
                                 }
                             }
                             .padding(.horizontal)
+                            .padding(.bottom, 10)
                         }
                     }
                     // Animation for collapsing/expanding
 //                    .transition(.move(edge: .top).combined(with: .opacity))
                     .animation(.easeInOut, value: isSummaryBarExpanded)
                 }
-
-                
+                    
                 // Spending List
-                VStack {
-                    List {
-                        Section(header: Text("Spendings").font(.headline).padding(.leading, -15)) {
-                            ForEach(spendings) { spending in
-                                VStack(alignment: .leading) {
-                                    HStack {
-                                        Text(spending.name)
-                                            .font(.headline)
-                                        Spacer()
-                                        Text("$\(spending.amount, specifier: "%.2f")")
-                                    }
-                                    Text("Payer: \(spending.payer)")
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                    Text("Participants: \(spending.participants.joined(separator: ", "))")
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            .onDelete(perform: deleteSpending) // Enable swipe-to-delete
-                        }
-                    }
-                    .navigationTitle("Records")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button(action: {
-                                withAnimation {
-                                    isSummaryBarExpanded.toggle()
-                                }
-                            }) {
+                List {
+                    Section(header: Text("Spendings").font(.headline).offset(x: -15)) {
+                        ForEach(spendings) { spending in
+                            VStack(alignment: .leading) {
                                 HStack {
-                                    Image(systemName: isSummaryBarExpanded ? "chevron.up" : "chevron.down")
+                                    Text(spending.name)
+                                        .font(.headline)
+                                    Spacer()
+                                    Text("$\(spending.amount, specifier: "%.2f")")
                                 }
+                                Text("Payer: \(spending.payer)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                Text("Participants: \(spending.participants.joined(separator: ", "))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
                             }
                         }
-                        ToolbarItemGroup(placement: .navigationBarTrailing) {
-                            Toggle(isOn: $useIndividualTransactions) {
-//                                Text("    ")
-                                Image(systemName: "gearshape.arrow.triangle.2.circlepath")
-                            }
-                            EditButton()
+                        .onDelete(perform: deleteSpending) // Enable swipe-to-delete
+                    }
+                }
+                .listStyle(InsetGroupedListStyle()) // Ensure proper list style
+                .padding(.top, isSummaryBarExpanded ? 0 : 16)
+                
+            }
+            .background(Color(.systemGray6))
+            .navigationTitle("Summary")
+//            .navigationBarTitleDisplayMode(.inline) // large/small title
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        withAnimation {
+                            isSummaryBarExpanded.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: isSummaryBarExpanded ? "chevron.up" : "chevron.down")
                         }
                     }
                 }
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Toggle(isOn: $useIndividualTransactions) {
+                        Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                    }
+                    EditButton()
+                }
             }
-            .background(Color(.systemGray6))
         }
     }
     
