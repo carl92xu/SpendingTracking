@@ -112,10 +112,10 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
-            AddSpendingView(spendings: $spendings, payers: $payers, newParticipants: $newParticipants)
-                .tabItem {
-                    Label("Add", systemImage: "plus.app")
-                }
+//            AddSpendingView(spendings: $spendings, payers: $payers, newParticipants: $newParticipants)
+//                .tabItem {
+//                    Label("Add", systemImage: "plus.app")
+//                }
 
             RecordView(spendings: $spendings)
                 .tabItem {

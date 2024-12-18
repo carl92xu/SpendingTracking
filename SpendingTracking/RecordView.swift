@@ -17,12 +17,25 @@ struct Transaction: Identifiable, Hashable {
 struct RecordView: View {
     @Binding var spendings: [Spending]
     @State private var isSummaryBarExpanded: Bool = true
+    @State private var useIndividualTransactions: Bool = false // Toggle state for function selection
     
     var body: some View {
         NavigationView {
             VStack {
                 // Conditionally Show Summary Bars with Animation
                 if isSummaryBarExpanded {
+////                    // Toggle to switch between the two functions
+//                    HStack {
+//                        Text("Minimize Payments")
+//                            .font(.headline)
+//                        Spacer()
+//                        Toggle(isOn: $useIndividualTransactions) {
+//                            Text("")
+//                        }
+//                        .labelsHidden()
+//                    }
+//                    .padding()
+                    
                     VStack {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack {
@@ -59,7 +72,15 @@ struct RecordView: View {
                         
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack {
-                                ForEach(calculateParticipantSummarySplit().sorted(by: { $0.payer < $1.payer }), id: \.id) { transaction in
+                                // Use selected function based on toggle
+                                let calcMethod = useIndividualTransactions
+                                    ? calculateIndividualTransactions()
+                                    : calculateParticipantSummarySplit()
+                                
+                                ForEach(calcMethod
+                                    .filter { abs($0.amount) > 1e-6 } // Filters out amounts close to 0
+//                                    .filter { $0.amount != 0 } // Filter out transactions with $0
+                                    .sorted(by: { $0.payer < $1.payer }), id: \.id) { transaction in
                                     VStack(alignment: .leading) {
                                         HStack {
                                             Text("\(transaction.payer)")
@@ -74,7 +95,6 @@ struct RecordView: View {
                                             .foregroundColor(Color(UIColor.label))
                                         Text("$\(transaction.amount, specifier: "%.2f")")
                                             .font(.headline)
-//                                            .foregroundColor(.red)
                                             .padding(.top, 5)
                                     }
                                     .padding(.horizontal, -50)
@@ -130,7 +150,11 @@ struct RecordView: View {
                                 }
                             }
                         }
-                        ToolbarItem(placement: .navigationBarTrailing) {
+                        ToolbarItemGroup(placement: .navigationBarTrailing) {
+                            Toggle(isOn: $useIndividualTransactions) {
+//                                Text("    ")
+                                Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                            }
                             EditButton()
                         }
                     }
@@ -177,7 +201,7 @@ struct RecordView: View {
         return participantSummary
     }
 
-    
+    // Calculate each individual's balance separately first, then assign debtors to creitors
     private func calculateParticipantSummarySplit() -> [Transaction] {
         var participantBalances: [String: Double] = [:]
         
@@ -217,6 +241,33 @@ struct RecordView: View {
             if debtors[0].value == 0 {
                 debtors.removeFirst()
             }
+        }
+        
+        return transactions
+    }
+    
+    // Calculates and returns aggregated transactions showing who owes whom how much
+    private func calculateIndividualTransactions() -> [Transaction] {
+        var aggregatedTransactions: [String: Double] = [:]
+        
+        // Iterate through all spendings
+        for spending in spendings {
+            let share = spending.amount / Double(spending.participants.count)
+            
+            // Each participant owes their share to the payer
+            for participant in spending.participants where participant != spending.payer {
+                let key = "\(participant)->\(spending.payer)" // Unique key for each payer-payee pair
+                aggregatedTransactions[key, default: 0.0] += share
+            }
+        }
+        
+        // Convert aggregated transactions back to [Transaction]
+        var transactions: [Transaction] = []
+        for (key, amount) in aggregatedTransactions {
+            let pair = key.split(separator: "->")
+            let payer = String(pair[0])
+            let payee = String(pair[1])
+            transactions.append(Transaction(payer: payer, payee: payee, amount: amount))
         }
         
         return transactions
