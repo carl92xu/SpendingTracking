@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Binding var payers: [String]
+    @Binding var newParticipants: [String]
     @State private var newPayer: String = ""
 
     var body: some View {
@@ -54,7 +55,14 @@ struct SettingsView: View {
     // Add a new payer
     func addPayer() {
         guard !newPayer.isEmpty, !payers.contains(newPayer) else { return }
-        payers.append(newPayer)
+        // check if newPayer is in payers or newParticipants
+        if !payers.contains(newPayer) {
+            // Remove the newPayer from newParticipants if it exists
+            if newParticipants.contains(newPayer) {
+                newParticipants.removeAll(where: { $0 == newPayer })
+            }
+            payers.append(newPayer)
+        }
         savePayers()
         newPayer = ""
     }
@@ -80,6 +88,7 @@ struct SettingsView: View {
 
 #Preview {
     @Previewable @State var payers: [String] = UserDefaults.standard.stringArray(forKey: "payers") ?? ["Eric", "BU", "Carl"]
+    @Previewable @State var newParticipants: [String] = []
     
-    SettingsView(payers: $payers)
+    SettingsView(payers: $payers, newParticipants: $newParticipants)
 }

@@ -70,32 +70,49 @@ extension View {
     }
 }
 
-struct ContentView: View {
-//    @State private var spendings: [Spending] = []
-    @State private var spendings: [Spending] = [
-        Spending(name: "Lunch", amount: 20.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
-        Spending(name: "Coffee", amount: 5.50, payer: "Eric", participants: ["Eric", "Carl"]),
-        Spending(name: "Groceries", amount: 100.00, payer: "BU", participants: ["Carl", "Eric", "BU"]),
-        Spending(name: "Taxi Ride", amount: 25.00, payer: "Carl", participants: ["Carl", "Eric"]),
-        Spending(name: "Movie Tickets", amount: 45.00, payer: "Eric", participants: ["Eric", "BU"]),
-        Spending(name: "Gym Membership", amount: 60.00, payer: "BU", participants: ["BU"]),
-        Spending(name: "Concert Tickets", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
-        Spending(name: "Dinner Party", amount: 80.00, payer: "Eric", participants: ["Carl", "Eric", "BU"]),
-        Spending(name: "Office Supplies", amount: 30.00, payer: "BU", participants: ["Carl", "Eric", "BU", "Other"]),
-        Spending(name: "Shared Rent", amount: 400.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
-        Spending(name: "Road Trip Gas", amount: 75.00, payer: "Other", participants: ["Carl", "Eric", "Other"]),
-        Spending(name: "Gift for Boss", amount: 50.00, payer: "Eric", participants: ["Eric", "Other"]),
-        Spending(name: "Holiday Groceries", amount: 200.00, payer: "BU", participants: ["Carl", "BU", "Other"]),
-        Spending(name: "Streaming Subscription", amount: 15.00, payer: "Other", participants: ["Carl", "BU", "Other"]),
-        Spending(name: "Shared Utilities", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
-        Spending(name: "Weekend Getaway", amount: 300.00, payer: "Eric", participants: ["Carl", "Eric", "Other"])
+struct MockData {
+    static let spendings: [Spending] = [
+        Spending(name: "租车", amount: 542, payer: "Eric", participants: ["Carl", "Eric"]),
+        Spending(name: "圣诞礼物", amount: 39.55, payer: "Eric", participants: ["Carl"]),
+        Spending(name: "Come From Away", amount: 456, payer: "Eric", participants: ["Carl", "Eric", "BU"])
     ]
+}
+
+struct ContentView: View {
+    @State var spendings: [Spending]
+    
+//    @State private var spendings: [Spending] = []
+    
+//    @State private var spendings: [Spending] = [
+//        Spending(name: "租车", amount: 542, payer: "Eric", participants: ["Carl", "Eric"]),
+//        Spending(name: "圣诞礼物", amount: 39.55, payer: "Eric", participants: ["Carl"]),
+//        Spending(name: "Come From Away", amount: 456, payer: "Eric", participants: ["Carl", "Eric", "BU"])
+//    ]
+//    @State private var spendings: [Spending] = [
+//        Spending(name: "Lunch", amount: 20.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
+//        Spending(name: "Coffee", amount: 5.50, payer: "Eric", participants: ["Eric", "Carl"]),
+//        Spending(name: "Groceries", amount: 100.00, payer: "BU", participants: ["Carl", "Eric", "BU"]),
+//        Spending(name: "Taxi Ride", amount: 25.00, payer: "Carl", participants: ["Carl", "Eric"]),
+//        Spending(name: "Movie Tickets", amount: 45.00, payer: "Eric", participants: ["Eric", "BU"]),
+//        Spending(name: "Gym Membership", amount: 60.00, payer: "BU", participants: ["BU"]),
+//        Spending(name: "Concert Tickets", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU"]),
+//        Spending(name: "Dinner Party", amount: 80.00, payer: "Eric", participants: ["Carl", "Eric", "BU"]),
+//        Spending(name: "Office Supplies", amount: 30.00, payer: "BU", participants: ["Carl", "Eric", "BU", "Other"]),
+//        Spending(name: "Shared Rent", amount: 400.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
+//        Spending(name: "Road Trip Gas", amount: 75.00, payer: "Other", participants: ["Carl", "Eric", "Other"]),
+//        Spending(name: "Gift for Boss", amount: 50.00, payer: "Eric", participants: ["Eric", "Other"]),
+//        Spending(name: "Holiday Groceries", amount: 200.00, payer: "BU", participants: ["Carl", "BU", "Other"]),
+//        Spending(name: "Streaming Subscription", amount: 15.00, payer: "Other", participants: ["Carl", "BU", "Other"]),
+//        Spending(name: "Shared Utilities", amount: 120.00, payer: "Carl", participants: ["Carl", "Eric", "BU", "Other"]),
+//        Spending(name: "Weekend Getaway", amount: 300.00, payer: "Eric", participants: ["Carl", "Eric", "Other"])
+//    ]
     
     @State private var payers: [String] = UserDefaults.standard.stringArray(forKey: "payers") ?? ["Eric", "BU", "Carl"]
+    @State private var newParticipants: [String] = []
 
     var body: some View {
         TabView {
-            AddSpendingView(spendings: $spendings, payers: $payers)
+            AddSpendingView(spendings: $spendings, payers: $payers, newParticipants: $newParticipants)
                 .tabItem {
                     Label("Add", systemImage: "plus.app")
                 }
@@ -105,7 +122,7 @@ struct ContentView: View {
                     Label("Record", systemImage: "list.bullet")
                 }
 
-            SettingsView(payers: $payers)
+            SettingsView(payers: $payers, newParticipants: $newParticipants)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
@@ -156,5 +173,6 @@ func dismissKeyboard() {
 }
 
 #Preview {
-    ContentView()
+//    ContentView()
+    ContentView(spendings: MockData.spendings)
 }

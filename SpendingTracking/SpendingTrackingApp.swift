@@ -11,7 +11,8 @@ import SwiftUI
 struct SpendingTrackingApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+//            ContentView()
+            ContentView(spendings: MockData.spendings)
         }
     }
 }

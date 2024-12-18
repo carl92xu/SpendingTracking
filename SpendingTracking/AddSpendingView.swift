@@ -12,8 +12,9 @@ struct AddSpendingView: View {
     
 //    private let payers = ["Eric", "BU", "Carl"]
     @Binding var payers: [String]
+    @Binding var newParticipants: [String]
     private var participants: [String] {
-        payers + ["Other"]
+        payers + newParticipants + ["Other"]
     }
     
     @State private var name: String = ""
@@ -203,7 +204,12 @@ struct AddSpendingView: View {
             print("Invalid input")
             return
         }
-
+        
+        // Default participants to the payer if empty
+        if selectedParticipants.isEmpty {
+            selectedParticipants = [selectedPayer]
+        }
+        
         let newSpending = Spending(name: name, amount: amountValue, payer: selectedPayer, participants: selectedParticipants)
         spendings.append(newSpending)
         saveSpendingsToFile()
@@ -233,7 +239,9 @@ struct AddSpendingView: View {
     func addCustomParticipant() {
         let trimmedName = newParticipantName.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedName.isEmpty && !participants.contains(trimmedName) {
-            payers.append(trimmedName) // Add to payers if needed
+//            payers.append(trimmedName) // Add to payers if needed
+//            participants.append(trimmedName)
+            newParticipants.append(trimmedName)
             selectedParticipants.append(trimmedName)
         }
         newParticipantName = "" // Clear input
